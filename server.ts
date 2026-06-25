@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// 평가 의견 생성 함수 (API 없이 로컬에서 처리)
 function generateEvaluationOpinion(participant: any, phase: string) {
   const phaseTimeline = participant?.[phase] || { scores: {} };
   const scores = phaseTimeline.scores || {};
@@ -30,6 +31,7 @@ function generateEvaluationOpinion(participant: any, phase: string) {
     self_regulation: '수중 자가 조절력'
   };
 
+  // 점수 분석
   const lowScores: string[] = [];
   const highScores: string[] = [];
   let totalScore = 0;
@@ -49,6 +51,7 @@ function generateEvaluationOpinion(participant: any, phase: string) {
 
   const averageScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : '0';
 
+  // 1. 수중 적응 분석
   let adaptationText = "";
   if (phase === 'initial') {
     if (Number(averageScore) >= 3.5) {
@@ -76,6 +79,7 @@ function generateEvaluationOpinion(participant: any, phase: string) {
     }
   }
 
+  // 2. 기술 진척 분석
   let skillAnalysis = "";
   if (highScores.length > 0) {
     const top3 = highScores.slice(0, 3).join(', ');
@@ -88,6 +92,7 @@ function generateEvaluationOpinion(participant: any, phase: string) {
     skillAnalysis = `전 영역에 걸쳐 균형잡힌 발달을 보이고 있음.`;
   }
 
+  // 3. 종합 의견
   let summaryText = "";
   const disability = participant?.disabilityName || "발달장애";
   const specialNotes = participant?.specialNotes || "별도 주의사항 없음";
@@ -102,6 +107,7 @@ function generateEvaluationOpinion(participant: any, phase: string) {
 
   const generalOpinion = `${adaptationText}\n\n${skillAnalysis}\n\n${summaryText}`;
 
+  // 4. 사후관리 계획
   let aftercareList: string[] = [];
   if (phase === 'initial') {
     aftercareList = [
@@ -128,6 +134,7 @@ function generateEvaluationOpinion(participant: any, phase: string) {
   return { generalOpinion, aftercare, averageScore };
 }
 
+// API Routes
 app.post("/api/evaluate", (req, res) => {
   try {
     const { participant, phase } = req.body;
@@ -151,6 +158,7 @@ app.post("/api/evaluate", (req, res) => {
   }
 });
 
+// Gemini Summarize API 엔드포인트
 app.post("/api/gemini/summarize", (req, res) => {
   try {
     const { participant, phase } = req.body;
@@ -174,6 +182,7 @@ app.post("/api/gemini/summarize", (req, res) => {
   }
 });
 
+// Vite middleware for development or Static serve for production
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
