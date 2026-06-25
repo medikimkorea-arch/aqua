@@ -139,27 +139,16 @@ app.post("/api/evaluate", (req, res) => {
   try {
     const { participant, phase } = req.body;
 
-    if (!participant || !phase) {
-      return res.status(400).json({ error: "참여자 정보 또는 평가 단계가 없습니다" });
-    }
-
-    const result = generateEvaluationOpinion(participant, phase);
-    
-    res.json({
-      generalOpinion: result.generalOpinion,
-      aftercare: result.aftercare,
-      averageScore: result.averageScore,
-      success: true
-    });
-
-  } catch (error) {
-    console.error("평가 의견 생성 중 오류:", error);
-    res.status(500).json({ error: "평가 의견 생성 실패" });
-  }
+   // Gemini Summarize API Route (새로 추가)
+app.post("/api/gemini/summarize", (req, res) => {
+  ...
+  res.json({
+    summary: result.generalOpinion,
+    aftercare: result.aftercare,
+    score: result.averageScore,
+    success: true
+  });
 });
-
-// Vite middleware for development or Static serve for production
-async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
